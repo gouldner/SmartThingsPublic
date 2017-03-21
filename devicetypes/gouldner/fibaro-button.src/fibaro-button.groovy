@@ -32,6 +32,7 @@ metadata {
         attribute "numberOfButtons", "number"
         attribute "buttonClicks", "enum", ["one click", "two clicks", "three clicks", "four clicks", "five clicks", "hold start", "hold release"]
         attribute "holdLevel", "number"
+        attribute "battery", "number"
 
         // http://docs.smartthings.com/en/latest/device-type-developers-guide/definition-metadata.html#fingerprinting
         // fingerprint mfg:0072, prod:0501, model:0F0F 
@@ -58,7 +59,7 @@ metadata {
                 attributeState "5", label: "Button 5", backgroundColor:"#44b621", icon:"st.unknown.zwave.remote-controller"
             }
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-                attributeState "battery", label:'${currentValue} % battery'
+                attributeState "battery", label:'${currentValue} %'
             }   
         }
         valueTile("configure", "device.button", width: 2, height: 2, decoration: "flat") {
@@ -66,7 +67,7 @@ metadata {
         }
         
         standardTile("version", "device.version", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
-            state "version", label: 'v1.0'
+            state "version", label: 'v1.1'
         }
 
         
@@ -203,20 +204,20 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
     log.debug ("Battery Report cmd=$cmd")
-    def map = [ name: "battery", unit: "%" ]
+    //def map = [ name: "battery", unit: "%" ]
     if (cmd.batteryLevel == 0xFF) {  // Special value for low battery alert
-        map.value = 1
+        //map.value = 1
         device.battery = 1
-        map.descriptionText = "${device.displayName} has a low battery"
-        map.isStateChange = true
+        //map.descriptionText = "${device.displayName} has a low battery"
+        //map.isStateChange = true
     } else {
-        map.value = cmd.batteryLevel
+        //map.value = cmd.batteryLevel
         device.battery = cmd.batteryLevel
         log.debug ("Battery: $cmd.batteryLevel")
     }
     // Store time of last battery update so we don't ask every wakeup, see WakeUpNotification handler
     state.lastbatt = new Date().time
-    createEvent(map)
+    //createEvent(map)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
