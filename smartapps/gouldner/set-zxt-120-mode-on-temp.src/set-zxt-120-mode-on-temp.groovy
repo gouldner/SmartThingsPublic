@@ -20,7 +20,7 @@ preferences {
 	section("Select the ZXT-120 Device... "){
 		input "thermostat", "capability.Thermostat", title: "ZXT-120"
 	}
-	section("Set the desired trigger temperature...(Over=Heat/CoolOff,Under=Cool/HeatOff"){
+	section("Set the desired trigger temperature...(When Under for Heat/CoolOff,When Over for Cool/HeatOff"){
 		input "setpoint", "decimal", title: "Set Temp"
 	}
 	section("Set Mode"){
