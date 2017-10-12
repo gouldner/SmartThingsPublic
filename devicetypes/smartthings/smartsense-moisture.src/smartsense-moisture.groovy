@@ -17,9 +17,11 @@ metadata {
 		capability "Sensor"
 		capability "Battery"
         capability "Temperature Measurement"
+		capability "Health Check"
 
 		fingerprint deviceId: "0x2001", inClusters: "0x30,0x9C,0x9D,0x85,0x80,0x72,0x31,0x84,0x86"
 		fingerprint deviceId: "0x2101", inClusters: "0x71,0x70,0x85,0x80,0x72,0x31,0x84,0x86"
+		fingerprint mfr:"0084", prod:"0063", model:"010C", deviceJoinName: "FortrezZ Moisture Sensor"
 	}
 
 	simulator {
@@ -89,6 +91,16 @@ def parse(String description) {
 	return result
 }
 
+def installed() {
+	// Device-Watch simply pings if no device events received for 482min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 4 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+}
+
+def updated() {
+	// Device-Watch simply pings if no device events received for 482min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 4 * 60 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+}
+
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 {
 	[descriptionText: "${device.displayName} woke up", isStateChange: false]
@@ -154,6 +166,15 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
         }
         map.unit = location.temperatureScale
 	}
+	map
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
+{
+	def map = [:]
+	map.name = "water"
+	map.value = cmd.value ? "wet" : "dry"
+	map.descriptionText = "${device.displayName} is ${map.value}"
 	map
 }
 

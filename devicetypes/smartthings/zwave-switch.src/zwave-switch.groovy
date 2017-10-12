@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "Z-Wave Switch", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Z-Wave Switch", namespace: "smartthings", author: "SmartThings", ocfDeviceType: "oic.d.switch") {
 		capability "Actuator"
 		capability "Indicator"
  		capability "Switch"
@@ -22,9 +22,9 @@ metadata {
 		capability "Health Check"
 		capability "Light"
 
-		fingerprint mfr:"0063", prod:"4952", deviceJoinName: "Z-Wave Wall Switch"
-		fingerprint mfr:"0063", prod:"5257", deviceJoinName: "Z-Wave Wall Switch"
-		fingerprint mfr:"0063", prod:"5052", deviceJoinName: "Z-Wave Plug-In Switch"
+		fingerprint mfr:"0063", prod:"4952", deviceJoinName: "GE Wall Switch"
+		fingerprint mfr:"0063", prod:"5257", deviceJoinName: "GE Wall Switch"
+		fingerprint mfr:"0063", prod:"5052", deviceJoinName: "GE Plug-In Switch"
 		fingerprint mfr:"0113", prod:"5257", deviceJoinName: "Z-Wave Wall Switch"
 	}
 
@@ -65,6 +65,11 @@ metadata {
 	}
 }
 
+def installed() {
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
+}
+
 def updated(){
 		// Device-Watch simply pings if no device events received for 32min(checkInterval)
 		sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
@@ -82,11 +87,20 @@ def updated(){
             indicatorWhenOn()
             break
     }
+    sendHubCommand(new physicalgraph.device.HubAction(zwave.manufacturerSpecificV1.manufacturerSpecificGet().format()))
+}
+
+def getCommandClassVersions() {
+	[
+		0x20: 1,  // Basic
+		0x56: 1,  // Crc16Encap
+		0x70: 1,  // Configuration
+	]
 }
 
 def parse(String description) {
 	def result = null
-	def cmd = zwave.parse(description, [0x20: 1, 0x70: 1])
+	def cmd = zwave.parse(description, commandClassVersions)
 	if (cmd) {
 		result = createEvent(zwaveEvent(cmd))
 	}
@@ -133,6 +147,16 @@ def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerS
 	createEvent([descriptionText: "$device.displayName MSR: $msr", isStateChange: false])
 }
 
+def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd) {
+	def versions = commandClassVersions
+	def version = versions[cmd.commandClass as Integer]
+	def ccObj = version ? zwave.commandClass(cmd.commandClass, version) : zwave.commandClass(cmd.commandClass)
+	def encapsulatedCommand = ccObj?.command(cmd.command)?.parse(cmd.data)
+	if (encapsulatedCommand) {
+		zwaveEvent(encapsulatedCommand)
+	}
+}
+
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	// Handles all Z-Wave commands we aren't interested in
@@ -164,7 +188,7 @@ def poll() {
   * PING is used by Device-Watch in attempt to reach the Device
 **/
 def ping() {
-		refresh()
+    zwave.switchBinaryV1.switchBinaryGet().format()
 }
 
 def refresh() {
