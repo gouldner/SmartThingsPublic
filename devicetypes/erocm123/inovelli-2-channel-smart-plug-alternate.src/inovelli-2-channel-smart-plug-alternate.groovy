@@ -1,12 +1,12 @@
 /**
  *
  *  Inovelli 2-Channel Smart Plug
- *
+ *   
  *  github: Eric Maycock (erocm123)
  *  Date: 2017-04-27
  *  Copyright Eric Maycock
  *
- *  Includes all configuration parameters and ease of advanced configuration.
+ *  Includes all configuration parameters and ease of advanced configuration. 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -19,13 +19,13 @@
  *
  */
 metadata {
-	definition(name: "Inovelli 2-Channel Smart Plug", namespace: "erocm123", author: "Eric Maycock") {
-		capability "Actuator"
-		capability "Sensor"
-		capability "Switch"
-		capability "Polling"
-		capability "Refresh"
-		capability "Health Check"
+    definition(name: "Inovelli 2-Channel Smart Plug (Alternate)", namespace: "erocm123", author: "Eric Maycock") {
+        capability "Actuator"
+        capability "Sensor"
+        capability "Switch"
+        capability "Polling"
+        capability "Refresh"
+        capability "Health Check"
         fingerprint mfr: "015D", prod: "0221", model: "251C"
         fingerprint mfr: "0312", prod: "B221", model: "251C"
         fingerprint deviceId: "0x1001", inClusters: "0x5E,0x85,0x59,0x5A,0x72,0x60,0x8E,0x73,0x27,0x25,0x86"
