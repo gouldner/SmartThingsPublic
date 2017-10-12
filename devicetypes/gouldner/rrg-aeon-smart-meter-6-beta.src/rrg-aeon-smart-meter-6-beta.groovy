@@ -98,7 +98,7 @@ metadata {
         valueTile("nightLightBrightness", "nightBright", inactiveLabel: false, decoration: "flat") {
             state "nightBright", label:'${currentValue}', unit:"%", backgroundColor:"#ffffff"
         }
-        controlTile("nightBrightSliderControl", "device.nightBright", "slider", height: 1, width: 2, inactiveLabel: false) {
+        controlTile("nightBrightSliderControl", "device.nightBright", "slider", height: 1, width: 1, inactiveLabel: false) {
             state "nightBright", action:"setNightBrightness", backgroundColor: "#1e9cbb"
         }
 

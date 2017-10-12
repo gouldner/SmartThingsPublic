@@ -119,8 +119,8 @@ def parse(String description) {
     def results = []
 
     def numberOfButtonsVal = device.currentValue("numberOfButtons")
-    log.debug ("setting number of buttons if not set numberOfButtons:${state.numberOfButtons} numberOfButtons:${numberOfButtonsVal}")
     if ( !state.numberOfButtons || !numberOfButtonsVal) {
+        log.debug ("setting number of buttons currently not set numberOfButtons:${state.numberOfButtons} numberOfButtons:${numberOfButtonsVal}")
         state.numberOfButtons = "5"
         event = createEvent(name: "numberOfButtons", value: "5", displayed: false)
         if (event) {
@@ -161,7 +161,8 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
 
         // can specify command class versions here like in zwave.parse
         if (encapsulatedCommand) {
-                return zwaveEvent(encapsulatedCommand)
+            log.debug ("SecurityMessageEncapsulation encapsulatedCommand:$encapsulatedCommand")
+            return zwaveEvent(encapsulatedCommand)
         }
         log.debug ("No encalsulatedCommand Processed")
 }
@@ -186,10 +187,10 @@ def zwaveEvent(physicalgraph.zwave.commands.versionv1.VersionReport cmd) {
 
 def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd) {
     log.debug("Crc16Encap: $cmd")
-    // log.debug( "Data: $cmd.data")
-    // log.debug( "Payload: $cmd.payload")
-    // log.debug( "command: $cmd.command")
-    // log.debug( "commandclass: $cmd.commandClass")
+    log.debug( "Data: $cmd.data")
+    log.debug( "Payload: $cmd.payload")
+    log.debug( "command: $cmd.command")
+    log.debug( "commandclass: $cmd.commandClass")
     def versions = [0x31: 3, 0x30: 2, 0x84: 2, 0x9C: 1, 0x70: 2]
     // def encapsulatedCommand = cmd.encapsulatedCommand(versions)
     def version = versions[cmd.commandClass as Integer]
