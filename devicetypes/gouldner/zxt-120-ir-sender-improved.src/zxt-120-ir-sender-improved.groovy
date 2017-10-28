@@ -92,6 +92,7 @@ metadata {
         attribute "reportedCoolingSetpoint", "STRING"
         attribute "reportedHeatingSetpoint", "STRING"
         attribute "learningPosition", "NUMBER"
+        attribute "learningPositionTemp", "STRING"
 
         // Z-Wave description of the ZXT-120 device
         fingerprint deviceId: "0x0806"
@@ -228,7 +229,7 @@ metadata {
         }
         
         standardTile("version", "device.version", inactiveLabel: false, decoration: "flat") {
-            state "version", label: 'v3-L'
+            state "version", label: 'v4-L'
         }
 
         // Mode switch.  Indicate and allow the user to change between heating/cooling modes
@@ -299,7 +300,12 @@ metadata {
         valueTile("learningPosition", "device.learningPosition", inactiveLabel: false, decoration: "flat") {
             state "learningPosition", label:'${currentValue}', unit:""
         }
-        controlTile("learningPositionControl", "device.learningPosition", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..22)") {
+        
+        valueTile("learningPositionTemp", "device.learningPositionTemp", inactiveLabel: false, decoration: "flat") {
+            state "learningPositionTemp", label:'${currentValue}', unit:""
+        }
+        
+        controlTile("learningPositionControl", "device.learningPosition", "slider", height: 1, width: 1, inactiveLabel: false, range:"(0..22)") {
             state "learningPosition", action:"setLearningPosition", backgroundColor: "#1e9cbb"
         }
         standardTile("issueLearningCommand", "issueLearningCommand", inactiveLabel: false, decoration: "flat") {
@@ -310,17 +316,24 @@ metadata {
         // starting in the upper left working right then down.
         //main "temperature"
         main (["temperature","temperatureName"])
-        details(["temperature", "battery", "temperatureName", "thermostatMode", "fanMode", "swingMode",
-                 "off","cool", "dry", "heat", "reportedCoolingSetpoint","reportedHeatingSetpoint",
-                 "fanModeLow","fanModeMed","fanModeHigh", "fanModeAuto", "swingModeOn", "swingModeOff",
+        details(["temperature", "battery", "temperatureName", 
+                 "thermostatMode", "fanMode", "swingMode",
+                 "off","cool", "dry", 
+                 "heat", "reportedCoolingSetpoint","reportedHeatingSetpoint",
+                 "fanModeLow","fanModeMed","fanModeHigh", 
+                 "fanModeAuto", "swingModeOn", "swingModeOff",
                  // Comment Out next two lines for Celsius Sliders
                  "heatingSetpoint", "heatSliderControl",      // Show Fahrenheit Heat Slider
                  "coolingSetpoint", "coolSliderControl",      // Show Fahrenheit Heat Slider
                  // Uncomment next two lines for Celsius Sliders
                  //"heatingSetpoint", "heatSliderControlC",   // Show Celsius Heat Slider
                  //"coolingSetpoint", "coolSliderControlC",   // Show Celsius Cool Slider
-                 "lastPoll", "currentConfigCode", "currentTempOffset", "learningPosition","learningPositionControl",
-                 "issueLearningCommand","refresh", "configure","version"
+                 "lastPoll", "currentConfigCode", "currentTempOffset", 
+                 // SmartThings changed their slider to include the value so learningPosition
+                 // Tile is now redundant.  Keeping tile in case they change this again.
+                 //"learningPosition",
+                 "learningPositionControl", "learningPositionTemp", "issueLearningCommand",
+                 "refresh", "configure","version"
         ])
     }
 }
@@ -384,26 +397,40 @@ def parse(String description)
 {
     // If the device sent an update, interpret it
     log.info "Parsing Description=$description"
-    def map = createEvent(zwaveEvent(zwave.parse(description, [0x70:1, 0x42:1, 0x43:2, 0x31: 3])))
-    // if the update wasn't from the device, quit
-    if (!map) {
-        log.warn "parse called generating null map....why is this possible ? description=$description"
+    // 0X20=Basic - V1 supported
+    // 0x27=Switch All - V1 supported
+    // 0X31=Sensor Multilevel - V1 supported
+    // 0X40=Thermostat Mode - V2 supported
+    // -- 0x42=Thermostat Operating State (NOT SUPPORTED, was in original device handler)
+    // 0x43=Thermostat Setpoint - V2 supported
+    // 0x44=Thermostat Fan Mode - V2 supported
+    // 0x70=Configuration - V1 supported
+    // 0x72=Manufacturer Specific - V1 supported
+    // 0x80=Battery - V1 supported
+    // 0x86=Version - V1 supported
+    def cmd = zwave.parse(description, [0X20:1, 0X27:1, 0x31:1, 0x40:2, 0x43:2, 0x44:2, 0x70:1, 0x72:1, 0x80:1, 0x86:1])
+    def map = []
+    def result = null
+    if (cmd) {
+        result = zwaveEvent(cmd)
+        log.debug "Parsed ${cmd} to ${result.inspect()}"
+        map = createEvent(result)
+    } else {
+        log.debug "Non-parsed event. Perhaps wrong version is being handled?: ${description}"
         return null
     }
-
-    log.debug "Parse map=$map"
-
-    def result = [map]
-
-
-    // If the update was a change in the device's fan speed
-    if (map.name == "thermostatFanMode" && map.isStateChange) {
-        // store the new fan speed
-        updateState("lastTriedFanMode", map.value)
+    
+    if (map) {
+        log.debug "Parsed ${description} to command ${cmd} to result ${result.inspect()} map=${map}"
+        // If the update was a change in the device's fan speed
+        if (map.name == "thermostatFanMode" && map.isStateChange) {
+            // store the new fan speed
+            updateState("lastTriedFanMode", map.value)
+        }
+        return [map]
+    } else {
+       return null
     }
-
-    log.debug "Parse returned $result"
-    result
 }
 
 //***** Event Handlers */
@@ -422,7 +449,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 
 // - Sensor Multilevel Report
 // The device is reporting temperature readings
-def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelReport cmd)
+def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv1.SensorMultilevelReport cmd)
 {
     log.debug "SensorMultilevelReport reporting...cmd=$cmd"
     // Determine the temperature the device is reporting
@@ -469,7 +496,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
 
 // - Thermostat Fan Mode Report
 // The device is reporting its current fan speed
-def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeReport cmd) {
+def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev2.ThermostatFanModeReport cmd) {
     def map = [:]
 
     // Determine the fan speed the device is reporting, based on its ZWave id
@@ -561,7 +588,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeSuppo
 
 // - Thermostat Fan Supported Modes Report
 // The device is reporting fan speeds it supports
-def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev3.ThermostatFanModeSupportedReport cmd) {
+def zwaveEvent(physicalgraph.zwave.commands.thermostatfanmodev2.ThermostatFanModeSupportedReport cmd) {
     // Create a string with mode names for each available mode
     def supportedFanModes = ""
     if(cmd.auto) { supportedFanModes += "fanAuto " }
@@ -612,10 +639,10 @@ def poll() {
     // create a list of requests to send
     def commands = []
 
-    commands <<	zwave.sensorMultilevelV3.sensorMultilevelGet().format()		// current temperature
+    commands <<	zwave.sensorMultilevelV1.sensorMultilevelGet().format()		// current temperature
     commands <<	zwave.batteryV1.batteryGet().format()                       // current battery level
     commands <<	zwave.thermostatModeV2.thermostatModeGet().format()     	// thermostat mode
-    commands <<	zwave.thermostatFanModeV3.thermostatFanModeGet().format()	// fan speed
+    commands <<	zwave.thermostatFanModeV2.thermostatFanModeGet().format()	// fan speed
     commands <<	zwave.configurationV1.configurationGet(parameterNumber: commandParameters["remoteCode"]).format()		// remote code
     commands <<	zwave.configurationV1.configurationGet(parameterNumber: commandParameters["tempOffsetParam"]).format()  // temp offset
     commands <<	zwave.configurationV1.configurationGet(parameterNumber: commandParameters["oscillateSetting"]).format()	// oscillate setting
@@ -702,6 +729,42 @@ def setCoolingSetpoint(degrees) {
 def setLearningPosition(position) {
     log.debug "Setting learning postition: $position"
     sendEvent("name":"learningPosition", "value":position)
+    def ctemp = 0
+    if (position < 12) {
+        ctemp=position+17
+    } else {
+        ctemp=position+7
+    }
+    def ftempLow=(Math.ceil(((ctemp*9)/5)+32)).toInteger()
+    def ftempHigh=ftempLow+1
+    def positionTemp = "not set"
+    switch (position) {
+        case 0:
+            positionTemp = 'Off'
+            break
+        case 1:
+            positionTemp = 'On(resume)'
+            break
+        case [3,4,5,6,8,9,10,11]:
+            positionTemp = "cool ${ctemp}C ${ftempLow}-${ftempHigh}F"
+            break
+        case [2,7]:
+            positionTemp = "cool ${ctemp}C ${ftempLow}F"
+            break
+        case [13,14,15,16,18,19,20,21]:
+            positionTemp = "heat ${ctemp}C ${ftempLow}-${ftempHigh}F"
+            break
+        case [12,17]:
+            positionTemp = "heat ${ctemp}C ${ftempLow}F"
+            break
+        case 22:
+            positionTemp = 'Dry mode'
+            break
+        default:
+            positionTemp = 'Invalid'
+            break
+    }   
+    sendEvent("name":"learningPositionTemp", "value":positionTemp)
 }
 
 def issueLearningCommand() {
@@ -736,7 +799,7 @@ def configure() {
             // Request the device's current heating/cooling mode
             zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
             // Request the device's current fan speed
-            zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format(),
+            zwave.thermostatFanModeV2.thermostatFanModeSupportedGet().format(),
             // Assign the device to ZWave group 1
             zwave.associationV1.associationSet(groupingIdentifier:1, nodeId:[zwaveHubNodeId]).format()
     ], 2300)
