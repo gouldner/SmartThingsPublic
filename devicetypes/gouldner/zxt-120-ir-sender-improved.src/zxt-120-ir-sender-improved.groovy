@@ -93,7 +93,7 @@ metadata {
         attribute "reportedHeatingSetpoint", "STRING"
         attribute "learningPosition", "NUMBER"
         attribute "learningPositionTemp", "STRING"
-
+        
         // Z-Wave description of the ZXT-120 device
         fingerprint deviceId: "0x0806"
         fingerprint inClusters: "0x20,0x27,0x31,0x40,0x43,0x44,0x70,0x72,0x80,0x86"
@@ -133,7 +133,7 @@ metadata {
 
     // SmartThings app user interface
     // Note: scale: 2 if you want to see 6 tiles/line
-    tiles (scale: 1) {
+    tiles (scale: 2) {
         // The currently detected temperature.  Show this as a large tile, changing colors as an indiciation
         // of the temperature
         valueTile("temperature", "device.temperature") {
@@ -154,19 +154,19 @@ metadata {
             state "battery", label:'${currentValue}% battery', unit:""
         }
         // Power Off Mode tile
-        standardTile("off", "device.thermostatMode", inactiveLabel: false) {
+        standardTile("off", "device.thermostatMode", height: 2, width: 4, inactiveLabel: false) {
             state "off", action:"switchModeOff", backgroundColor:"#92C081", icon: "st.thermostat.heating-cooling-off"
         }
         // Cool Mode tile
-        standardTile("cool", "device.thermostatMode", inactiveLabel: false) {
+        standardTile("cool", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
             state "cool", action:"switchModeCool", backgroundColor:"#4A7BDE", icon: "st.thermostat.cool"
         }
         // Dry Mode tile
-        standardTile("dry", "device.thermostatMode", inactiveLabel: false) {
+        standardTile("dry", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
             state "dry", action:"switchModeDry", backgroundColor:"#DBD099", label: "Dry", icon: "st.Weather.weather12"
         }
         // Heat Mode tile
-        standardTile("heat", "device.thermostatMode", inactiveLabel: false) {
+        standardTile("heat", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
             state "heat", action:"switchModeHeat", backgroundColor:"#C15B47", icon: "st.thermostat.heat"
         }
 
@@ -200,38 +200,31 @@ metadata {
             state "off", action:"swingModeOff", icon:"st.secondary.refresh-icon", label: 'Swing Off'
         }
 
-        valueTile("reportedCoolingSetpoint", "device.reportedCoolingSetpoint", inactiveLabel: true, decoration: "flat") {
+        valueTile("reportedCoolingSetpoint", "device.reportedCoolingSetpoint", height: 1, width: 1, inactiveLabel: true, decoration: "flat") {
             state "reportedCoolingSetpoint", label:'${currentValue}° cool', unit:"F", backgroundColor:"#ffffff"
         }
-
-        valueTile("reportedHeatingSetpoint", "device.reportedHeatingSetpoint", inactiveLabel: true, decoration: "flat") {
+        valueTile("reportedHeatingSetpoint", "device.reportedHeatingSetpoint", height: 1, width: 1, inactiveLabel: true, decoration: "flat") {
             state "reportedHeatingSetpoint", label:'${currentValue}° heat', unit:"F", backgroundColor:"#ffffff"
         }
-
-
-        valueTile("heatingSetpoint", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat") {
+        valueTile("heatingSetpoint", "device.heatingSetpoint", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
             state "heatingSetpoint", label:'${currentValue}° heat', unit:"F", backgroundColor:"#ffffff"
         }
-        controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false, range:"(67..84)") {
-            state "setHeatingSetpoint", action:"thermostat.setHeatingSetpoint", backgroundColor: "#d04e00"
-        }
-        valueTile("coolingSetpoint", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat") {
+        valueTile("coolingSetpoint", "device.coolingSetpoint", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
             state "coolingSetpoint", label:'${currentValue}° cool', unit:"F", backgroundColor:"#ffffff"
         }
-        controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false, range:"(67..84)") {
+        controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(67..84)") {
+            state "setHeatingSetpoint", action:"thermostat.setHeatingSetpoint", backgroundColor: "#d04e00"
+        }    
+        controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(67..84)") {
             state "setCoolingSetpoint", action:"thermostat.setCoolingSetpoint", backgroundColor: "#1e9cbb"
         }
-        controlTile("heatSliderControlC", "device.heatingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false, range:"(19..28)") {
+        controlTile("heatSliderControlC", "device.heatingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(19..28)") {
             state "setHeatingSetpoint", action:"thermostat.setHeatingSetpoint", backgroundColor: "#d04e00"
         }
-        controlTile("coolSliderControlC", "device.coolingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false, range:"(19..28)") {
+        controlTile("coolSliderControlC", "device.coolingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(19..28)") {
             state "setCoolingSetpoint", action:"thermostat.setCoolingSetpoint", backgroundColor: "#1e9cbb"
         }
-        
-        standardTile("version", "device.version", inactiveLabel: false, decoration: "flat") {
-            state "version", label: 'v4-L'
-        }
-
+ 
         // Mode switch.  Indicate and allow the user to change between heating/cooling modes
         standardTile("thermostatMode", "device.thermostatMode", inactiveLabel: false, decoration: "flat", canChangeIcon: true, canChangeBackground: true) {
             state "off", icon:"st.thermostat.heating-cooling-off", label: ' '
@@ -263,16 +256,17 @@ metadata {
         }
         // Refresh command button.  Allow the user to request the device be polled and the UI be updated
         // with the current settings/sensor data
-        standardTile("refresh", "device.thermostatMode", inactiveLabel: false, decoration: "flat") {
-            state "default", action:"polling.poll", icon:"st.secondary.refresh"
+        standardTile("refresh", "device.thermostatMode", inactiveLabel: false) {
+            state "default", label: poll, action:"polling.poll", icon:"st.Entertainment.entertainment15", backgroundColor:"#00bfff"
         }
         // Last Poll Tile
         valueTile("lastPoll", "device.lastPoll", inactiveLabel: false, decoration: "flat") {
-            state "lastPoll", label:'${currentValue}', unit:""
+            state "lastPoll", label:'Last Pool ${currentValue}', unit:""
         }
         // Configure button.  Syncronize the device capabilities that the UI provides
-        standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat") {
-            state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
+        standardTile("configure", "device.configure", inactiveLabel: false) {
+            state "configure", label:'Config', action:"configuration.configure", 
+                  icon:"st.Entertainment.entertainment15", backgroundColor:"#00bfff"
         }
         // Current Config Code
         valueTile("currentConfigCode", "device.currentConfigCode", inactiveLabel: false, decoration: "flat") {
@@ -299,18 +293,22 @@ metadata {
         // Learning Mode Tiles
         valueTile("learningPosition", "device.learningPosition", inactiveLabel: false, decoration: "flat") {
             state "learningPosition", label:'${currentValue}', unit:""
+        }      
+        controlTile("learningPositionControl", "device.learningPosition", "slider", height: 1, width: 1, inactiveLabel: false, range:"(0..22)") {
+            state "learningPosition", action:"setLearningPosition", backgroundColor: "#fffc33"
         }
-        
+        standardTile("issueLearningCommand", "issueLearningCommand", height: 2, width: 2, inactiveLabel: false) {
+            state "issueLearningCommand", label:'learn', action:"issueLearningCommand", icon:"st.Kids.kids1", backgroundColor: "#fffc33"
+        }
         valueTile("learningPositionTemp", "device.learningPositionTemp", inactiveLabel: false, decoration: "flat") {
             state "learningPositionTemp", label:'${currentValue}', unit:""
         }
         
-        controlTile("learningPositionControl", "device.learningPosition", "slider", height: 1, width: 1, inactiveLabel: false, range:"(0..22)") {
-            state "learningPosition", action:"setLearningPosition", backgroundColor: "#1e9cbb"
+        valueTile("version", "device.dhVersion", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
+            state "version", label: 'Device Handler V5-L'
         }
-        standardTile("issueLearningCommand", "issueLearningCommand", inactiveLabel: false, decoration: "flat") {
-            state "issueLearningCommand", label:'learn', action:"issueLearningCommand", icon:"http://gouldner.net/smartthings/icons/IrPaper.png"
-        }
+
+        
 
         // Layout the controls on the SmartThings device UI.  The page is a 3x3 layout, tiles are layed out
         // starting in the upper left working right then down.
@@ -318,24 +316,29 @@ metadata {
         main (["temperature","temperatureName"])
         details(["temperature", "battery", "temperatureName", 
                  "thermostatMode", "fanMode", "swingMode",
-                 "off","cool", "dry", 
-                 "heat", "reportedCoolingSetpoint","reportedHeatingSetpoint",
+                 "off", "dry", 
+                 //"coolingSetpoint" tile no longer needed because new slider displays current value
+                 // change "coolSliderControl" to "coolSliderControlC" for Celsius
+                 "cool", "coolSliderControl", "reportedCoolingSetpoint", 
+                 //"heatingSetpoint", 
+                 // change "heatSliderControl" to "heatSliderControlC" for Celsius
+                 "heat", "heatSliderControl", "reportedHeatingSetpoint",
                  "fanModeLow","fanModeMed","fanModeHigh", 
                  "fanModeAuto", "swingModeOn", "swingModeOff",
-                 // Comment Out next two lines for Celsius Sliders
-                 "heatingSetpoint", "heatSliderControl",      // Show Fahrenheit Heat Slider
-                 "coolingSetpoint", "coolSliderControl",      // Show Fahrenheit Heat Slider
-                 // Uncomment next two lines for Celsius Sliders
-                 //"heatingSetpoint", "heatSliderControlC",   // Show Celsius Heat Slider
-                 //"coolingSetpoint", "coolSliderControlC",   // Show Celsius Cool Slider
-                 "lastPoll", "currentConfigCode", "currentTempOffset", 
                  // SmartThings changed their slider to include the value so learningPosition
                  // Tile is now redundant.  Keeping tile in case they change this again.
                  //"learningPosition",
-                 "learningPositionControl", "learningPositionTemp", "issueLearningCommand",
-                 "refresh", "configure","version"
+                 "issueLearningCommand", "learningPositionControl", "refresh", "configure","currentTempOffset", 
+                 "learningPositionTemp", "lastPoll", "currentConfigCode", "version"
+                 
+                 
         ])
     }
+}
+
+def installed() {
+    log.debug "ZXT-120 installed()"
+    configure()
 }
 
 //***** Enumerations */
@@ -1068,7 +1071,6 @@ def setRemoteCode() {
             zwave.configurationV1.configurationGet(parameterNumber: commandParameters["remoteCode"]).format()
     ])
 }
-
 def setTempOffset() {
     // Load the user's remote code setting
     def tempOffsetVal = tempOffset == null ? 0 : tempOffset.toInteger()
