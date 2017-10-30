@@ -20,16 +20,16 @@ metadata {
 	// UI tile definitions
 	tiles {
 		standardTile("button", "device.switch", width: 2, height: 2, canChangeIcon: true) {
-			state "offReady", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "onReady"
+			state "offReady", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#cc0000", nextState: "onReady"
 			state "onReady", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821", nextState: "offReady"
-			state "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#cc0000"
 			state "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 		}
         standardTile("buttonOn", "device.switchOn", width: 1, height: 1) {
 			state "on", label: 'On', action: "switch.on", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 		}
         standardTile("buttonOff", "device.switchOff", width: 1, height: 1) {
-			state "off", label: 'Off', action: "switch.off", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "off", label: 'Off', action: "switch.off", icon: "st.switches.switch.off", backgroundColor: "#cc0000"
 		}
 		main "button"
 		details "button","buttonOn","buttonOff"
