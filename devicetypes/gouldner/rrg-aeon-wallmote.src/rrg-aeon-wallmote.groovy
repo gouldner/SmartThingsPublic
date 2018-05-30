@@ -159,6 +159,8 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
     {
         logging("Over 24hr since last battery report. Requesting report")
         request << zwave.batteryV1.batteryGet()
+    } else {
+        logging("No Battery Report needed.  Lastreport:$state.lastBatteryReport")
     }
     
     state.wakeCount? (state.wakeCount = state.wakeCount + 1) : (state.wakeCount = 2)
@@ -326,6 +328,9 @@ def update_needed_settings()
      
     def configuration = parseXml(configuration_model())
     def isUpdateNeeded = "NO"
+    
+    // RRG added battery get so configure will always update battery.
+    cmds << zwave.batteryV1.batteryGet()
     
     if(state.wakeInterval == null || state.wakeInterval != 86400){
         logging("Setting Wake Interval to 86400")
