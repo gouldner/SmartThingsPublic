@@ -36,6 +36,7 @@ preferences {
     input("remoteCode", "number", title: "Remote Code", description: "The number of the remote to emulate")
     input("tempOffset", "enum", title: "Temp correction offset?", options: ["-5","-4","-3","-2","-1","0","1","2","3","4","5"])
     input("shortName", "string", title: "Short Name for Home Page Temp Icon", description: "Short Name:")
+    input("onCommand", "enum", title: "Command to send when 'On' Button is Pressed?", options: ["on(resume)","cool","heat","dry"])
 }
 
 metadata {
@@ -154,12 +155,19 @@ metadata {
             state "battery", label:'${currentValue}% battery', unit:""
         }
         // Power Off Mode tile
-        standardTile("off", "device.thermostatMode", height: 2, width: 4, inactiveLabel: false) {
-            state "off", action:"switchModeOff", backgroundColor:"#92C081", icon: "st.thermostat.heating-cooling-off"
+        standardTile("off", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
+            //state "off", action:"switchModeOff", backgroundColor:"#fc2d05", label: "Off", icon: "st.custom.buttons.subtract-icon"
+            state "off", action:"switchModeOff", backgroundColor:"#fc2d05", label: "Off", icon: "st.samsung.da.RC_ic_power"
+        }
+        // Power on Mode tile
+        standardTile("on", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
+            //state "on", action:"on", backgroundColor:"#92C081", label: "On", icon: "st.custom.buttons.add-icon"
+            state "on", action:"on", backgroundColor:"#92C081", label: "On", icon: "st.samsung.da.RC_ic_power"
         }
         // Cool Mode tile
         standardTile("cool", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
-            state "cool", action:"switchModeCool", backgroundColor:"#4A7BDE", icon: "st.thermostat.cool"
+            //state "cool", action:"switchModeCool", backgroundColor:"#4A7BDE", icon: "st.thermostat.cool"
+            state "cool", action:"switchModeCool", backgroundColor:"#4A7BDE", label: "Cool", icon: "st.samsung.da.RAC_4line_02_ic_cool"
         }
         // Dry Mode tile
         standardTile("dry", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
@@ -167,7 +175,8 @@ metadata {
         }
         // Heat Mode tile
         standardTile("heat", "device.thermostatMode", height: 2, width: 2, inactiveLabel: false) {
-            state "heat", action:"switchModeHeat", backgroundColor:"#C15B47", icon: "st.thermostat.heat"
+            //state "heat", action:"switchModeHeat", backgroundColor:"#C15B47", icon: "st.thermostat.heat"
+            state "heat", action:"switchModeHeat", backgroundColor:"#C15B47", label: "Heat", icon: "st.samsung.da.RAC_4line_02_ic_heat"
         }
 
         // Low Fan Mode
@@ -214,16 +223,18 @@ metadata {
         }
         controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(67..84)") {
             state "setHeatingSetpoint", action:"thermostat.setHeatingSetpoint", backgroundColor: "#d04e00"
-        }    
-        controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(67..84)") {
-            state "setCoolingSetpoint", action:"thermostat.setCoolingSetpoint", backgroundColor: "#1e9cbb"
         }
         controlTile("heatSliderControlC", "device.heatingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(19..28)") {
             state "setHeatingSetpoint", action:"thermostat.setHeatingSetpoint", backgroundColor: "#d04e00"
         }
+        controlTile("coolSliderControl", "device.coolingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(67..84)") {
+            state "setCoolingSetpoint", action:"thermostat.setCoolingSetpoint", backgroundColor: "#1e9cbb"
+        }
         controlTile("coolSliderControlC", "device.coolingSetpoint", "slider", height: 1, width: 1, inactiveLabel: false, range:"(19..28)") {
             state "setCoolingSetpoint", action:"thermostat.setCoolingSetpoint", backgroundColor: "#1e9cbb"
         }
+        
+        
  
         // Mode switch.  Indicate and allow the user to change between heating/cooling modes
         standardTile("thermostatMode", "device.thermostatMode", inactiveLabel: false, decoration: "flat", canChangeIcon: true, canChangeBackground: true) {
@@ -316,7 +327,7 @@ metadata {
         main (["temperature","temperatureName"])
         details(["temperature", "battery", "temperatureName", 
                  "thermostatMode", "fanMode", "swingMode",
-                 "off", "dry", 
+                 "off", "on", "dry", 
                  //"coolingSetpoint" tile no longer needed because new slider displays current value
                  // change "coolSliderControl" to "coolSliderControlC" for Celsius
                  "cool", "coolSliderControl", "reportedCoolingSetpoint", 
@@ -368,6 +379,7 @@ def getSetpointReportingMap() { [
 // modeMap - Link the heating/cooling modes with their ZWave id numbers
 def getModeMap() { [
         "off": physicalgraph.zwave.commands.thermostatmodev1.ThermostatModeSet.MODE_OFF,
+        "resume": physicalgraph.zwave.commands.thermostatmodev1.ThermostatModeSet.MODE_RESUME,
         "heat": physicalgraph.zwave.commands.thermostatmodev1.ThermostatModeSet.MODE_HEAT,
         "cool": physicalgraph.zwave.commands.thermostatmodev1.ThermostatModeSet.MODE_COOL,
         "auto": physicalgraph.zwave.commands.thermostatmodev1.ThermostatModeSet.MODE_AUTO,
@@ -415,8 +427,8 @@ def parse(String description)
     def map = []
     def result = null
     if (cmd) {
-        result = zwaveEvent(cmd)
         log.debug "Parsed ${cmd} to ${result.inspect()}"
+        result = zwaveEvent(cmd)       
         map = createEvent(result)
     } else {
         log.debug "Non-parsed event. Perhaps wrong version is being handled?: ${description}"
@@ -441,6 +453,7 @@ def parse(String description)
 
 // Battery Level event
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
+    log.debug "BatteryReport cmd:$cmd"
     def map = [:]
     map.name = "battery"
     map.value = cmd.batteryLevel > 0 ? cmd.batteryLevel.toString() : 1
@@ -902,18 +915,20 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 // Set Thermostat Mode
 // Set the device to the named mode
 def setThermostatMode(String value) {
-
     def commands = []
     def degrees=0
     def setpointMode=null
-
+    log.debug("setThermostatMode value:$value")
+    
     if (value == "cool") {
+        log.debug("Cool requested, sending setpoint cooling")
         degrees = device.currentValue("coolingSetpoint")
         setpointMode = physicalgraph.zwave.commands.thermostatsetpointv1.ThermostatSetpointSet.SETPOINT_TYPE_COOLING_1
     } else if (value == "heat") {
+        log.debug("heat requested, sending setpoint heating")
         degrees = device.currentValue("heatingSetpoint")
         setpointMode = physicalgraph.zwave.commands.thermostatsetpointv1.ThermostatSetpointSet.SETPOINT_TYPE_HEATING_1
-    } else if (value == "dry" || value == "off") {
+    } else if (value == "dry" || value == "off" || value == "resume") {
         log.debug("Dry Mode or Off no need to send temp")
     } else {
         log.warn("Unknown thermostat mode set:$value")
@@ -963,8 +978,7 @@ def setThermostatMode(String value) {
 // Set Thermostat Fan Mode
 // Set the device to the named fan speed
 def setThermostatFanMode(String value) {
-
-    log.debug value + " ${fanModeMap[value]}"
+    log.debug "setThermostatFanMode to ${value} fanModeMap:${fanModeMap[value]}"
     delayBetween([
             // Command the device to change the fan speed
             zwave.thermostatFanModeV2.thermostatFanModeSet(fanMode: fanModeMap[value]).format(),
@@ -995,10 +1009,22 @@ def off() {
 }
 
 def on() {
-    log.debug "${device.name} received on request"
-    // Added "Switch Attribute on/off for Harmony Remote
-    // TODO: RRG add preference for on turns on heat or AC hard code to ac for now
-    switchModeCool()
+    def onCommandVal = onCommand == null ? "on(resume)" : onCommand
+    log.debug "${device.name} received on request onCommandVal=${onCommandVal}"
+
+    switch (onCommandVal) {
+        case "on(resume)":
+            log.debug "issuing setThermostatMode:on"
+            setThermostatMode("resume")
+            break;
+        case ['cool','heat','dry']:
+            log.debug "issuing setThermostatMode:${onCommandVal}"
+            setThermostatMode(onCommandVal)
+            break;
+        default:
+            log.warn "Configuration Error: unknown onCommandVal: ${onCommandVal}"
+            break;
+    }
 }
 
 // switchModeCommands
@@ -1117,7 +1143,7 @@ def swingModeOff() {
 def setFanOscillate(swingMode) {
     // Convert the swing mode requested to 1 for on, 0 for off
     def swingValue = swingMode ? 1 : 0
-
+    log.debug "Sending Swing Mode swingValue=$swingValue"
     delayBetween ([
             // Command the new Swing Mode
             zwave.configurationV1.configurationSet(configurationValue: [swingValue],
