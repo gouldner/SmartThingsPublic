@@ -316,7 +316,7 @@ metadata {
         }
         
         valueTile("version", "device.dhVersion", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
-            state "version", label: 'Device Handler V5-L'
+            state "version", label: 'Device Handler V6.1'
         }
 
         
