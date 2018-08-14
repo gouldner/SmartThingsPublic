@@ -73,7 +73,7 @@ def off() {
 }
 
 def setLevel(valueaux) {
-  def level = Math.max(Math.min(valueaux, 99), 0)
+  def level = Math.max(Math.min(valueaux, 100), 0)
   if (level > 0) {
       sendEvent(name: "switch", value: "on")
   } else {
