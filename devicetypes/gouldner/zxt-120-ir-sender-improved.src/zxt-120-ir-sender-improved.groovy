@@ -210,10 +210,10 @@ metadata {
         }
 
         valueTile("reportedCoolingSetpoint", "device.reportedCoolingSetpoint", height: 1, width: 1, inactiveLabel: true, decoration: "flat") {
-            state "reportedCoolingSetpoint", label:'${currentValue}° cool', unit:"F", backgroundColor:"#ffffff"
+            state "reportedCoolingSetpoint", label:'${currentValue}° cool', unit:"C", backgroundColor:"#ffffff"
         }
         valueTile("reportedHeatingSetpoint", "device.reportedHeatingSetpoint", height: 1, width: 1, inactiveLabel: true, decoration: "flat") {
-            state "reportedHeatingSetpoint", label:'${currentValue}° heat', unit:"F", backgroundColor:"#ffffff"
+            state "reportedHeatingSetpoint", label:'${currentValue}° heat', unit:"C", backgroundColor:"#ffffff"
         }
         valueTile("heatingSetpoint", "device.heatingSetpoint", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
             state "heatingSetpoint", label:'${currentValue}° heat', unit:"F", backgroundColor:"#ffffff"
@@ -316,7 +316,7 @@ metadata {
         }
         
         valueTile("version", "device.dhVersion", height: 1, width: 1, inactiveLabel: false, decoration: "flat") {
-            state "version", label: 'Device Handler V5-L'
+            state "version", label: 'Device Handler V6.1'
         }
 
         
@@ -330,10 +330,10 @@ metadata {
                  "off", "on", "dry", 
                  //"coolingSetpoint" tile no longer needed because new slider displays current value
                  // change "coolSliderControl" to "coolSliderControlC" for Celsius
-                 "cool", "coolSliderControl", "reportedCoolingSetpoint", 
+                 "cool", "coolSliderControlC", "reportedCoolingSetpoint", 
                  //"heatingSetpoint", 
                  // change "heatSliderControl" to "heatSliderControlC" for Celsius
-                 "heat", "heatSliderControl", "reportedHeatingSetpoint",
+                 "heat", "heatSliderControlC", "reportedHeatingSetpoint",
                  "fanModeLow","fanModeMed","fanModeHigh", 
                  "fanModeAuto", "swingModeOn", "swingModeOff",
                  // SmartThings changed their slider to include the value so learningPosition
@@ -873,32 +873,17 @@ def getDataByName(String name) {
 def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpointReport cmd)
 {
     log.info "RRG V1 ThermostatSetpointReport cmd=$cmd"
-    log.debug "cmd.scale=$cmd.scale"
-    log.debug "cmd.scaledValue=$cmd.scaledValue"
-    // Determine the temperature and mode the device is reporting
-    def cmdScale = cmd.scale == 1 ? "F" : "C"
-    def deviceScale = state.scale ?: 1
-    log.debug "deviceScale=${deviceScale}"
-    def deviceScaleString = deviceScale == 2 ? "C" : "F"
-
     //NOTE:  When temp is sent to device in Fahrenheit and returned in celsius
     //       1 degree difference is normal.  Device only has 1 degree celsius granularity
     //       issuing 80F for example returns 26C, which converts to 79F
     //       Maybe I should lie to user and report current set temp rather than reported temp
     //       to avoid confusion and false bug reports....needs to be considered.
-    def degrees = cmd.scaledValue
-    def reportedTemp
-    if (cmdScale == "C" && deviceScaleString == "F") {
-           log.debug "Converting celsius to fahrenheit"
-           reportedTemp = Math.ceil(celsiusToFahrenheit(degrees))
-    } else if (cmdScale == "F" && deviceScaleString == "C") {
-        log.debug "Converting fahrenheit to celsius"
-        reportedTemp = fahrenheitToCelsius(degrees)
-    } else {
-        log.debug "No Conversion needed"
-        reportedTemp = degrees
-    }
-
+    def cmdScale = cmd.scale == 1 ? "F" : "C"
+    log.debug "cmd.scale=$cmd.scale"
+    log.debug "cmd.scaledValue=$cmd.scaledValue"
+    // converTemp returns string with two decimal places
+    // convert to double then to int to drop the decimal
+    Integer reportedTemp = (int) convertTemperatureIfNeeded(cmd.scaledValue, cmdScale).toDouble()
     
     // Determine what mode the setpoint is for, if the mode is not valid, bail out
     def name = setpointReportingMap.find {it.value == cmd.setpointType}?.key

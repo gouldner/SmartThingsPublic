@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "Fortrezz Water Valve", namespace: "smartthings", author: "hacked") {
+	definition (name: "Fortrezz Water Valve", namespace: "gouldner", author: "gouldner") {
 		capability "Actuator"
 		capability "Valve"
 		capability "Refresh"
@@ -35,7 +35,7 @@ metadata {
 	// tile definitions
 	tiles {
 		standardTile("contact", "device.contact", width: 2, height: 2, canChangeIcon: true) {
-			state "open", label: 'off', action: "valve.close", icon: "st.valves.water.open", backgroundColor: "#A9A9A9", nextState:"closing"
+			state "open", label: 'off', action: "valve.close", icon: "st.valves.water.open", backgroundColor: "#53a7c0", nextState:"closing"
 			state "closed", label: 'on', action: "valve.open", icon: "st.valves.water.closed", backgroundColor: "#e86d13", nextState:"opening"
 			state "opening", label: 'off...', action: "valve.close", icon: "st.valves.water.open", backgroundColor: "#ffe71e"
 			state "closing", label: 'on...', action: "valve.open", icon: "st.valves.water.closed", backgroundColor: "#ffe71e"
