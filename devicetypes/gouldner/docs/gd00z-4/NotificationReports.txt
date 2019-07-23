@@ -1,0 +1,25 @@
+Low Battery
+NotificationReport(event: 74, eventParameter: [1], eventParametersLength: 1, notificationStatus: 255,
+                   notificationType: 6, reserved61: 0, sequence: false, v1AlarmLevel: 0,
+                   v1AlarmType: 0, zensorNetSourceNodeId: 0)
+NotificationReport(event: 74, eventParameter: [1], eventParametersLength: 1, notificationStatus: 255, 
+                   notificationType: 6, reserved61: 0, sequence: false, v1AlarmLevel: 0, 
+                   v1AlarmType: 0, zensorNetSourceNodeId: 0)
+
+
+
+NotificationReport(event: 0, eventParameter: [], eventParametersLength: 0, notificationStatus: 255,
+                   notificationType: 7, reserved61: 0, sequence: false,
+                   v1AlarmLevel: 0, v1AlarmType: 0, zensorNetSourceNodeId: 0)
+NotificationReport(event: 0, eventParameter: [], eventParametersLength: 0, notificationStatus: 255,
+                   notificationType: 6, reserved61: 0, sequence: false,
+                   v1AlarmLevel: 0, v1AlarmType: 0, zensorNetSourceNodeId: 0)
+NotificationReport(event: 74, eventParameter: [1], eventParametersLength: 1, notificationStatus: 255,
+                   notificationType: 6, reserved61: 0, sequence: false,
+                   v1AlarmLevel: 0, v1AlarmType: 0, zensorNetSourceNodeId: 0)
+NotificationReport(event: 3, eventParameter: [], eventParametersLength: 0, notificationStatus: 255,
+                   notificationType: 7, reserved61: 0, sequence: false,
+                   v1AlarmLevel: 0, v1AlarmType: 0, zensorNetSourceNodeId: 0)
+NotificationReport(event: 74, eventParameter: [1], eventParametersLength: 1, notificationStatus: 255,
+                   notificationType: 6, reserved61: 0, sequence: false,
+                   v1AlarmLevel: 0, v1AlarmType: 0, zensorNetSourceNodeId: 0)
